@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -28,7 +27,12 @@ public class UserResource {
 	
 	@GetMapping("/users/{id}")
 	public User retrieveUser(@PathVariable int id){
-		return service.findOne(id);
+		User user = service.findOne(id);
+		
+		if(user==null)
+			throw new UserNotFoundException("id:"+id);
+		
+		return user;
 	}
 	
 	@PostMapping("/users")
@@ -38,6 +42,6 @@ public class UserResource {
 				.path("/{id}")
 				.buildAndExpand(savedUser.getId())
 				.toUri();
-		return ResponseEntity.created(location ).build();
+		return ResponseEntity.created(location).build();
 	}
 }
