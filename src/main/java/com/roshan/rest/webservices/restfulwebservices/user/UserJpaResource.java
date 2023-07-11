@@ -97,6 +97,7 @@ public class UserJpaResource {
 		//Predicate<? super Post> predicate = p -> p.getId().equals(p_id);
 		//Post post = user.get().getPosts().stream().filter(predicate).findFirst().get();
 		//return post;
+		  
 		Optional<Post> post = postService.findById(p_id);
 		return post.get();
 	}
