@@ -6,6 +6,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -93,7 +94,10 @@ public class UserJpaResource {
 		Optional<User> user = service.findById(id);
 		  if(user.isEmpty()) 
 			  throw new UserNotFoundException("id:"+id);
-		Post post = user.get().getPosts().get(p_id);
-		return post;
+		//Predicate<? super Post> predicate = p -> p.getId().equals(p_id);
+		//Post post = user.get().getPosts().stream().filter(predicate).findFirst().get();
+		//return post;
+		Optional<Post> post = postService.findById(p_id);
+		return post.get();
 	}
 }
