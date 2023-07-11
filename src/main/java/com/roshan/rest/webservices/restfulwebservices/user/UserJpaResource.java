@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.roshan.rest.webservices.restfulwebservices.jpa.PostRepository;
 import com.roshan.rest.webservices.restfulwebservices.jpa.UserRepository;
 
 import jakarta.validation.Valid;
@@ -26,9 +27,11 @@ import jakarta.validation.Valid;
 public class UserJpaResource {
 
 	private UserRepository service;
+	private PostRepository postService;
 
-	public UserJpaResource(UserRepository service) {
+	public UserJpaResource(UserRepository service, PostRepository postService) {
 		this.service = service;
+		this.postService = postService;
 	}
 
 	@GetMapping("/users")
@@ -37,18 +40,18 @@ public class UserJpaResource {
 	}
 
 	
-	 @GetMapping("/users/{id}") public EntityModel<User>
-	  retrieveUser(@PathVariable int id){ 
+	 @GetMapping("/users/{id}") 
+	 public EntityModel<User> retrieveUser(@PathVariable int id){ 
 		 Optional<User> user = service.findById(id);
 	  
-	  if(user.isEmpty()) throw new UserNotFoundException("id:"+id);
+		 if(user.isEmpty()) 
+			 throw new UserNotFoundException("id:"+id);
 	  
-	  EntityModel<User> entityModel = EntityModel.of(user.get()); WebMvcLinkBuilder link
-	  = linkTo(methodOn(this.getClass()).retrieveAllUsers());
-	  entityModel.add(link.withRel("all-users")); return entityModel; 
-	  
+		 EntityModel<User> entityModel = EntityModel.of(user.get()); 
+		 WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+		 entityModel.add(link.withRel("all-users"));
+		 return entityModel; 
 	 }
-	
 
 	@DeleteMapping("/users/{id}")
 	public void deleteUser(@PathVariable int id) {
@@ -61,5 +64,36 @@ public class UserJpaResource {
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId())
 				.toUri();
 		return ResponseEntity.created(location).build();
+	}
+	
+	@GetMapping("/users/{id}/posts")
+	public List<Post> retrievePostsForAUser(@PathVariable int id) {
+		Optional<User> user = service.findById(id);
+		  if(user.isEmpty()) 
+			  throw new UserNotFoundException("id:"+id);
+		List<Post> posts = user.get().getPosts();
+		return posts;
+	}
+	
+	@PostMapping("/users/{id}/posts")
+	public ResponseEntity<Post> createPostForUser(@PathVariable int id, @Valid @RequestBody Post post) {
+		Optional<User> user = service.findById(id);
+		  if(user.isEmpty()) 
+			  throw new UserNotFoundException("id:"+id);
+		  post.setUser(user.get());
+		Post savedPost = postService.save(post);
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+				.buildAndExpand(savedPost.getId())
+				.toUri();
+		return ResponseEntity.created(location).build();
+	}
+	
+	@GetMapping("/users/{id}/posts/{p_id}")
+	public Post retrievePostForAUser(@PathVariable int id, @PathVariable int p_id) {
+		Optional<User> user = service.findById(id);
+		  if(user.isEmpty()) 
+			  throw new UserNotFoundException("id:"+id);
+		Post post = user.get().getPosts().get(p_id);
+		return post;
 	}
 }
